@@ -3,26 +3,31 @@ name: Rufus Job Radar
 on:
   workflow_dispatch:
   schedule:
-    # 09:00 Asia/Kolkata = 03:30 UTC. GitHub may occasionally delay scheduled runs.
+    # 09:00 AM India Standard Time (03:30 UTC)
     - cron: "30 3 * * *"
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: rufus-job-radar
+  cancel-in-progress: false
 
 jobs:
   job-radar:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
       - name: Restore deduplication state
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v5
         with:
           path: state.json
           key: job-radar-state-${{ github.run_id }}
@@ -30,7 +35,7 @@ jobs:
             job-radar-state-
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: python -m pip install -r requirements.txt
 
       - name: Run job radar
         env:
@@ -39,7 +44,7 @@ jobs:
         run: python main.py
 
       - name: Save deduplication state
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         if: always() && hashFiles('state.json') != ''
         with:
           path: state.json
