@@ -7,6 +7,8 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 import requests
+from dotenv import load_dotenv
+load_dotenv()
 
 STATE_FILE = Path("state.json")
 TIMEOUT = 25
